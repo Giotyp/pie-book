@@ -26,8 +26,16 @@ for chapter in manifest['chapters']:
         assert (page.parent / unquote(href)).is_file(), f'Missing source target: {href}'
         count += 1
     assert catalog['references'] or chapter['number'] == 15, f'No source links: {page}'
-for link in re.findall(r'\]\((chapters/[^)]+)\)', (root / 'docs/introduction.md').read_text()):
-    assert (root / 'docs' / link).is_file(), f'Missing intro target: {link}'
+intro = (root / 'docs/introduction.md').read_text()
+intro_links = re.findall(r'href="(chapters/[^"#]+)"|\]\((chapters/[^)#]+)\)', intro)
+intro_links = [html_link or markdown_link for html_link, markdown_link in intro_links]
+assert intro_links, 'Introduction has no chapter links'
+for link in intro_links:
+    assert (root / 'docs' / Path(link).with_suffix('.md')).is_file(), f'Missing intro target: {link}'
+index_links = re.findall(r'class="chapter-link" href="([^"]+)"', intro)
+assert index_links == [str(Path(link).with_suffix('.html')) for link in expected], 'Contents chapter order differs from manifest'
+recommended_links = re.findall(r'\]\((chapters/[^)#]+)\)', intro.split('<section class="reading-path"', 1)[1].split('</section>', 1)[0])
+assert recommended_links == [f"chapters/{c['slug']}.html" for c in manifest['chapters'] if c['recommended']], 'Recommended path differs from manifest'
 print(f"Validated {len(expected)} chapters, exact source snapshots, and {count} source links")
 
 # Read all pinned Git blobs in one process rather than spawning per file.

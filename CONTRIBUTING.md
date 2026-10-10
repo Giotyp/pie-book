@@ -1,8 +1,9 @@
 # Maintaining the Pie book
 
 The `mdbook` branch assembles the book. Tutorial branch READMEs remain the
-narrative source; `chapters.json` pins the introduction and each chapter to a
-commit. The generated `docs/` content and `book/` output are ignored by Git.
+narrative source; `chapters.json` pins each chapter to a commit and holds its
+contents-page description and recommended-reading flag. The generated `docs/`
+content and `book/` output are ignored by Git.
 
 Install mdBook 0.5.4, then run from the repository root:
 
@@ -28,8 +29,12 @@ explicit source links in its branch README if a guided read order is desired.
 Future line-range annotations and draggable panel sizing are enhancements;
 the initial reader uses a fixed desktop width and full-screen mobile drawer.
 
-The introduction is generated from the pinned main README. Book-specific
-reading guidance and link conversion live in `scripts/import-book.py`.
+The introduction uses the maintained `templates/introduction.md` template.
+Edit its opening, recommended path, and reading guidance there. The importer
+fills its chapter index from `chapters.json`; section headings are shared with
+the sidebar in `scripts/import-book.py`. Contents-page styling lives in
+`theme/contents.css`. Keep the recommended path consistent with the manifest
+flags when changing recommendations.
 Do not hand-edit generated pages or source snapshots. The raw `.txt` links
 remain usable when JavaScript is disabled.
 

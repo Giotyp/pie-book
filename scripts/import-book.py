@@ -81,25 +81,26 @@ def main():
         raise ValueError('Chapter numbers must be consecutive and ordered')
     for directory in ('chapters', 'assets/source', 'assets/catalog'):
         (DOCS / directory).mkdir(parents=True, exist_ok=True)
-    intro = git('show', manifest['introduction_commit'] + ':README.md').decode()
-    for c in chapters:
-        intro = intro.replace('../../tree/' + c['branch'] + ')', 'chapters/' + c['slug'] + '.md)')
-    intro += ('\n## Reading this book\n\n'
-              'Follow the chapters in order. Each chapter describes a separate, pinned Git commit. '
-              'Click a source filename to read that version in the source panel; on a small screen, '
-              'the panel opens over the chapter. Directory links open an entry file, and the file '
-              'selector lets you browse the rest of that chapter.\n\n'
-              'To run a chapter, clone this repository and check out the commit shown on its page. '
-              'The chapter commands require Rust and the `wasm32-wasip2` target; the macOS examples '
-              'use Metal and download model weights. Source files are reading examples, not '
-              'standalone Rust Playground programs.\n\n'
-              'Descriptions of missing reference features refer to the tutorial stage where they '
-              'appear; later chapters may add them. The current Pie implementation may have evolved '
-              'beyond these tutorial snapshots.\n')
-    (DOCS / 'introduction.md').write_text(intro)
     parts = {1: 'Inferlets and KV memory', 6: 'Generation techniques and conversations',
              12: 'Serving and execution performance', 15: 'Reference architecture and runtime services',
              24: 'GPU execution and advanced capabilities'}
+    index = []
+    for c in chapters:
+        number = c['number']
+        if number in parts:
+            if index:
+                index.append('</ol>')
+            index.append(f'<h3>{html.escape(parts[number])}</h3>')
+            index.append(f'<ol class="chapter-list" start="{number}">')
+        index.append(
+            f'<li><a class="chapter-link" href="chapters/{c["slug"]}.html">'
+            f'{html.escape(c["title"])}</a>. {html.escape(c["description"])}</li>')
+    index.append('</ol>')
+    intro = (ROOT / 'templates/introduction.md').read_text()
+    if intro.count('{{chapter_index}}') != 1:
+        raise ValueError('Introduction template must contain one chapter_index placeholder')
+    intro = intro.replace('{{chapter_index}}', '\n'.join(index))
+    (DOCS / 'introduction.md').write_text(intro)
     summary = ['# Summary', '', '[Introduction](introduction.md)', '']
     for c in chapters:
         if c['number'] in parts:
