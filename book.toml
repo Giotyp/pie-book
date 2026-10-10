@@ -1,0 +1,14 @@
+[book]
+title = "Pie: Build an Inference Runtime"
+authors = ["Pie tutorial contributors"]
+language = "en"
+src = "docs"
+
+[output.html]
+site-url = "/pie-book/"
+git-repository-url = "https://github.com/Giotyp/pie-book"
+additional-css = ["theme/source-viewer.css"]
+additional-js = ["theme/source-viewer.js"]
+
+[output.html.playground]
+runnable = false

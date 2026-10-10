@@ -1,0 +1,57 @@
+name: Build and publish book
+on:
+  push:
+    branches: [mdbook]
+  pull_request:
+    branches: [mdbook]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: book-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install mdBook 0.5.4
+        run: |
+          mkdir -p "$RUNNER_TEMP/mdbook"
+          curl --fail --location --retry 3 https://github.com/rust-lang/mdBook/releases/download/v0.5.4/mdbook-v0.5.4-x86_64-unknown-linux-gnu.tar.gz | tar -xz -C "$RUNNER_TEMP/mdbook"
+          echo "$RUNNER_TEMP/mdbook" >> "$GITHUB_PATH"
+      - name: Import and validate chapter snapshots
+        run: |
+          python3 scripts/import-book.py
+          python3 scripts/validate-book.py
+      - name: Build book
+        run: mdbook build
+      - name: Upload preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: pie-book
+          path: book
+      - name: Configure Pages
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@v5
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: book
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
