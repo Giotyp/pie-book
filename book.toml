@@ -1,5 +1,5 @@
 [book]
-title = "Pie: Build an Inference Runtime"
+title = "A programmable LLM serving system."
 authors = ["Pie tutorial contributors"]
 language = "en"
 src = "docs"
