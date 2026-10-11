@@ -1,6 +1,6 @@
 <div class="book-contents">
 
-# A *programmable* LLM serving system.
+# Pie: A *programmable* LLM serving system.
 
 This book builds an inference runtime from scratch. It starts with a small Wasm host that runs inferlets, then adds KV memory management, generation techniques, runtime services, and GPU execution. Thirty chapters follow the runtime's construction and include the code for each stage. An extra chapter, [Inspecting an Inferlet](chapters/31-inspecting-an-inferlet.html), dissects the reference beam-search program in Rust, Python, and JavaScript side by side.
 

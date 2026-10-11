@@ -1,5 +1,5 @@
 [book]
-title = "A programmable LLM serving system."
+title = "Pie: A programmable LLM serving system."
 authors = ["Pie tutorial contributors"]
 language = "en"
 src = "docs"
