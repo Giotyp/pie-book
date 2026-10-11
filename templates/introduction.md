@@ -2,7 +2,7 @@
 
 # Pie: Build an Inference Runtime
 
-This book builds an inference runtime from scratch. It starts with a small Wasm host that runs inferlets, then adds KV memory management, generation techniques, runtime services, and GPU execution. Each of the thirty chapters adds one feature and includes the code for that stage.
+This book builds an inference runtime from scratch. It starts with a small Wasm host that runs inferlets, then adds KV memory management, generation techniques, runtime services, and GPU execution. Thirty chapters follow the runtime's construction and include the code for each stage. An extra chapter, [Inspecting an Inferlet](chapters/31-inspecting-an-inferlet.html), dissects the reference beam-search program in Rust, Python, and JavaScript side by side.
 
 If you’re new to Pie, start with [Inferlets](chapters/01-inferlet.html). If you’re looking for a particular feature, see the [chapter list](#all-chapters) below.
 
@@ -26,7 +26,7 @@ If you’re building along, follow all chapters in order: each implementation bu
 
 ## How to use this book
 
-Each chapter describes a separate, pinned Git commit. Click a source filename to read that version in the source panel; on a small screen, the panel opens over the chapter. Directory links open an entry file, and the file selector lets you browse the rest of that chapter.
+Each chapter describes a separate, pinned Git commit. Click a source filename to read that version in the source panel; on a small screen, the panel opens over the chapter. Directory links open an entry file, and the file selector lets you browse the rest of that chapter. The inspection chapter includes pinned reference sources and its own build instructions; it is a standalone walkthrough rather than the next runtime implementation.
 
 To run a chapter, clone this repository and check out the commit shown on its page. The chapter commands require Rust and the `wasm32-wasip2` target; the macOS examples use Metal and download model weights. Source files are reading examples, not standalone Rust Playground programs.
 

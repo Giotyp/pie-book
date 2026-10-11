@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Rebuild generated book content from the commits in chapters.json."""
 import html
+import hashlib
 import json
 import re
 import subprocess
+import textwrap
 from pathlib import Path
 from urllib.parse import quote
 
@@ -65,13 +67,53 @@ def link_sources(text, chapter, files):
                 if not target:
                     return match.group(0)
                 references.append({'label': label, 'path': target})
-                url = '../assets/source/' + chapter['slug'] + '/' + quote(target) + '.txt'
+                # mdBook rewrites literal .md in links even before a .txt suffix.
+                url = '../assets/source/' + chapter['slug'] + '/' + quote(target).replace('.md', '%2Emd') + '.txt'
                 return (f'<a class="source-link" href="{url}" '
                         f'data-source="{html.escape(target, quote=True)}">'
                         f'<code>{html.escape(label)}</code></a>')
             line = re.sub(r'`([^`\n]+)`', replace, line)
         output.append(line)
     return '\n'.join(output) + '\n', references
+
+
+def render_comparisons(text, chapter, files, references):
+    """Render aligned excerpts from the same snapshots used by the source panel."""
+    comparisons = json.loads((ROOT / chapter['comparisons']).read_text())
+    used = []
+
+    def render(match):
+        key = match.group(1)
+        used.append(key)
+        columns = ['<div class="code-comparison">']
+        for snippet in comparisons[key]:
+            path = snippet['path']
+            lines = files[path].splitlines()
+            start, end = snippet['start'], snippet['end']
+            if not 1 <= start <= end <= len(lines):
+                raise ValueError(f'Invalid excerpt: {key} {path}:{start}-{end}')
+            # Remove only whole comment lines; preserve code and its indentation.
+            selected = [line for line in lines[start - 1:end]
+                        if not line.lstrip().startswith(('//', '# '))]
+            excerpt = textwrap.dedent('\n'.join(selected)).strip('\n')
+            # Blank lines inside raw HTML otherwise end CommonMark HTML blocks.
+            escaped_excerpt = html.escape(excerpt).replace('\n', '&#10;')
+            url = '../assets/source/' + chapter['slug'] + '/' + quote(path) + '.txt'
+            references.append({'label': snippet['label'], 'path': path})
+            columns.append(
+                '<section class="code-language">'
+                f'<h3>{html.escape(snippet["label"])}</h3>'
+                f'<a class="source-link" href="{url}" data-source="{html.escape(path, quote=True)}">'
+                f'Full source · lines {start}–{end}</a>'
+                f'<pre><code class="language-{snippet["language"]}">{escaped_excerpt}</code></pre>'
+                '</section>')
+        columns.append('</div>')
+        return '\n'.join(columns)
+
+    text = re.sub(r'\{\{compare:([\w-]+)\}\}', render, text)
+    if set(used) != set(comparisons) or len(used) != len(comparisons):
+        raise ValueError('Every comparison must appear exactly once in the chapter')
+    return text
 
 
 def main():
@@ -83,7 +125,7 @@ def main():
         (DOCS / directory).mkdir(parents=True, exist_ok=True)
     parts = {1: 'Inferlets and KV memory', 6: 'Generation techniques and conversations',
              12: 'Serving and execution performance', 15: 'Reference architecture and runtime services',
-             24: 'GPU execution and advanced capabilities'}
+             24: 'GPU execution and advanced capabilities', 31: 'Inferlets in practice'}
     index = []
     for c in chapters:
         number = c['number']
@@ -106,10 +148,19 @@ def main():
         if c['number'] in parts:
             summary += ['# ' + parts[c['number']], '']
         summary.append(f"- [{c['title']}](chapters/{c['slug']}.md)")
-        names = git('ls-tree', '-r', '--name-only', c['commit']).decode().splitlines()
+        repository = c.get('repository', REPO)
+        if 'source_dir' in c:
+            names = sorted(c['source_hashes'])
+            blobs = [(p, (ROOT / c['source_dir'] / p).read_bytes()) for p in names]
+            for path, data in blobs:
+                if hashlib.sha256(data).hexdigest() != c['source_hashes'][path]:
+                    raise ValueError(f'Source snapshot checksum mismatch: {path}')
+        else:
+            names = git('ls-tree', '-r', '--name-only', c['commit']).decode().splitlines()
+            names = [p for p in names if p != 'README.md' and not p.endswith('Cargo.lock')]
+            blobs = read_blobs(c['commit'], names)
         files = {}
-        names = [p for p in names if p != 'README.md' and not p.endswith('Cargo.lock')]
-        for path, data in read_blobs(c['commit'], names):
+        for path, data in blobs:
             try:
                 content = data.decode('utf-8')
             except UnicodeDecodeError:
@@ -123,17 +174,20 @@ def main():
         for alias, target in c['aliases'].items():
             if target not in files:
                 raise ValueError(f"Invalid alias {c['slug']}: {alias} -> {target}")
-        text = git('show', c['commit'] + ':README.md').decode()
+        text = ((ROOT / c['template']).read_text() if 'template' in c
+                else git('show', c['commit'] + ':README.md').decode())
         text = re.sub(r'^# Chapter #\d+:', '#', text, count=1)
         text, references = link_sources(text, c, files)
-        metadata = (f"\n> Source: [{c['branch']}]({REPO}/tree/{c['commit']}) · "
+        if 'comparisons' in c:
+            text = render_comparisons(text, c, files, references)
+        metadata = (f"\n> Source: [{c['branch']}]({repository}/tree/{c['commit']}) · "
                     f"Commit: `{c['commit'][:12]}`\n\n"
                     f"```bash\ngit checkout {c['commit']}\n```\n\n"
                     f'<span class="source-catalog" data-catalog="../assets/catalog/{c["slug"]}.json"></span>\n')
         heading, rest = text.split('\n', 1)
         (DOCS / 'chapters' / (c['slug'] + '.md')).write_text(heading + '\n' + metadata + rest)
         catalog = dict(chapter=c['title'], commit=c['commit'], slug=c['slug'],
-                       repository=REPO, files=sorted(files), references=references)
+                       repository=repository, files=sorted(files), references=references)
         (DOCS / 'assets/catalog' / (c['slug'] + '.json')).write_text(json.dumps(catalog, indent=2) + '\n')
     (DOCS / 'SUMMARY.md').write_text('\n'.join(summary) + '\n')
     print(f'Imported {len(chapters)} chapters and introduction')

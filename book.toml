@@ -7,7 +7,7 @@ src = "docs"
 [output.html]
 site-url = "/pie-book/"
 git-repository-url = "https://github.com/Giotyp/pie-book"
-additional-css = ["theme/source-viewer.css", "theme/contents.css"]
+additional-css = ["theme/source-viewer.css", "theme/contents.css", "theme/inspection.css"]
 additional-js = ["theme/source-viewer.js"]
 
 [output.html.playground]

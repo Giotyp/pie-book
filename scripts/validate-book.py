@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Check imported chapter order, snapshot identity, and local source targets."""
 import json
+import hashlib
 import re
 import subprocess
 from pathlib import Path
@@ -21,7 +22,28 @@ for chapter in manifest['chapters']:
     assert catalog['commit'] == chapter['commit']
     for file in catalog['files']:
         snapshot = root / 'docs/assets/source' / chapter['slug'] / (file + '.txt')
-        snapshots.append((chapter['commit'] + ':' + file, snapshot))
+        if 'source_dir' in chapter:
+            original = root / chapter['source_dir'] / file
+            assert snapshot.read_bytes() == original.read_bytes(), f'Snapshot mismatch: {file}'
+            assert hashlib.sha256(original.read_bytes()).hexdigest() == chapter['source_hashes'][file], f'Checksum mismatch: {file}'
+        else:
+            snapshots.append((chapter['commit'] + ':' + file, snapshot))
+    if 'comparisons' in chapter:
+        comparisons = json.loads((root / chapter['comparisons']).read_text())
+        assert text.count('<div class="code-comparison">') == len(comparisons)
+        assert '{{compare:' not in text, f'Unexpanded comparison in {page}'
+        covered = {}
+        for snippets in comparisons.values():
+            assert [s['label'] for s in snippets] == ['Rust', 'Python', 'JavaScript']
+            for snippet in snippets:
+                covered.setdefault(snippet['path'], set()).update(range(snippet['start'], snippet['end'] + 1))
+        # The walkthrough must account for every code line after the header.
+        for path, lines in covered.items():
+            source = (root / chapter['source_dir'] / path).read_text().splitlines()
+            for number, line in enumerate(source, 1):
+                if number >= min(lines) and line.strip() and not line.lstrip().startswith(('//', '# ')):
+                    assert number in lines, f'Code omitted from walkthrough: {path}:{number}'
+        assert catalog['repository'] == chapter['repository']
     for href in re.findall(r'class="source-link" href="([^"]+)"', text):
         assert (page.parent / unquote(href)).is_file(), f'Missing source target: {href}'
         count += 1

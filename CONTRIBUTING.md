@@ -38,6 +38,20 @@ flags when changing recommendations.
 Do not hand-edit generated pages or source snapshots. The raw `.txt` links
 remain usable when JavaScript is disabled.
 
+The standalone **Inspecting an Inferlet** chapter is maintained in
+`templates/inspecting-an-inferlet.md`. Its manifest entry specifies a
+`source_dir` of checked-in reference files, their upstream repository and
+commit, and SHA-256 checksums. This lets CI build without a sibling Pie
+checkout. To update it, copy the listed files from a clean checkout of the
+new upstream commit and update the commit and checksums together.
+`templates/inspecting-an-inferlet.json` defines inclusive source line ranges
+for each `{{compare:name}}` block. The importer renders Rust, Python, and
+JavaScript columns from those files, omits whole comment lines, and removes common
+indentation. Update
+the ranges and explanations when changing the sources, then inspect the
+rendered chapter. Complete files remain available in the source panel.
+Comparison styling lives in `theme/inspection.css` and stacks on mobile.
+
 ## GitHub Pages
 
 In repository Settings → Pages, select **GitHub Actions** as the build source.

@@ -302,6 +302,44 @@
       "aliases": {},
       "description": "Write Python inferlets and package them as Wasm components.",
       "recommended": false
+    },
+    {
+      "number": 31,
+      "title": "Inspecting an Inferlet",
+      "slug": "31-inspecting-an-inferlet",
+      "branch": "pie-project/pie beam-search examples",
+      "commit": "b64b7fa5b4f88c07a918fbf1ac0a060e662992fc",
+      "repository": "https://github.com/pie-project/pie",
+      "template": "templates/inspecting-an-inferlet.md",
+      "source_dir": "sources/inspecting-an-inferlet",
+      "source_hashes": {
+        "examples/beam-search/src/lib.rs": "dade051828109c04363f7861cad8471425972c711e180416c25c353f9134757a",
+        "examples/beam-search/Cargo.toml": "d96f7642dc9d3adc1d652452a2edbd097ba1931888c098e6b3aa8299b70beb8b",
+        "examples/beam-search/README.md": "f5dee58d3d08a519bc0f02e135960fa20cf7c4ad87a692a123ac367f424df6d8",
+        "examples/beam-search-py/main.py": "7263d40dba27bef584cd938b198ac2415247b45b64e0a5f18d1a8d8daea72974",
+        "examples/beam-search-js/index.js": "20576a1133960a73e641331587bd83948dd475c22727296d51f325ba576d23f6",
+        "examples/beam-search-js/package.json": "bd4f2012e2a76685f380a9aa2f3dc07624b275fb68e19867d62590277efe5c62",
+        "packages/python/inferlet/README.md": "c321f83e02b3bd1d367e3e7220ea5cc61f0e684b11e250a78a936923da332abb",
+        "packages/javascript/inferlet/README.md": "9806699110fec607b80d0d2cab1bfddb399642780e4101b9399ee2cd8c8f0b0a",
+        "LICENSE": "bf78432e565a8fc995c8d3300c452ab515b04bf129b430e95915e5fadd51035c",
+        "crates/inferlet/src/eta.rs": "1907e3ea4ae5dca6ece8f2b84270838d300844d51443d1db415088372d77ba7b",
+        "crates/inferlet-macros/src/lib.rs": "fe279c65cf3f1bf387ac350cd99bf2830578c38ed75aed38df93fc05a2954b27",
+        "crates/inferlet/wit/channel.wit": "408f9fe742ebcc3805d4f430b0e6522aca89b1bd95f468afd99ef4776519578e",
+        "crates/inferlet/wit/working-set.wit": "1d98dd6d0c423095d9033562e4737f6e991f5300e49d332056243b1ff6f38850",
+        "packages/python/inferlet/src/inferlet/eta/bridge.py": "636c8cf5bd9ae0015996f20ee6eff46df05f00dec3581d2bea7460f30684095a",
+        "packages/javascript/inferlet/src/eta/bridge.ts": "402c006292690a922e42398ae990c42e6e2df35f5627e9da642fe61b5510d00c",
+        "crates/eta-dsl/src/value.rs": "94a2eb0ad152a39414dd20aaa569ba1f8d824b4b3f987d6fa6764703257088a2",
+        "src/ops/run.rs": "5f05741b287d1c5d898a7502da81c2d2d627023ad2380e748d434d8cd8dd6ea6",
+        "examples/Cargo.toml": "5f562dd2ca2dad4a33c79dc2c25ef320ac53c76b2c29c37f1322bdcf6a46215f",
+        "tests/examples/test_curated.py": "f94eb7365e42010679d30cf322f6a0ff1d7b4e004cdd1a655c39e5c0256bb0cc",
+        "tests/examples/test_twins.py": "3f12dce307ea565e726d127c6c6e5a786eb9db91aa3f41b6731d1d6af5f4f346",
+        "tests/examples/conftest.py": "6685eed6b0842218e8defd877d304e0213cc3944f5d23cd5b0c6b367ee3e466f",
+        "tests/examples/run_all.py": "bf116992d3b4b968956f2ffce73526cd671366bb6c1c1919134605a514ae4ad3"
+      },
+      "comparisons": "templates/inspecting-an-inferlet.json",
+      "aliases": {},
+      "description": "Dissect beam search from entry point to output in Rust, Python, and JavaScript.",
+      "recommended": false
     }
   ]
 }
