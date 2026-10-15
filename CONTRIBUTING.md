@@ -1,6 +1,6 @@
 # Maintaining the Pie book
 
-The `mdbook` branch assembles the book. Tutorial branch READMEs remain the
+The `main` branch assembles and publishes the book. Tutorial branch READMEs remain the
 narrative source; `chapters.json` pins each chapter to a commit and holds its
 contents-page description and recommended-reading flag. The generated `docs/`
 content and `book/` output are ignored by Git.
@@ -16,7 +16,11 @@ mdbook serve --open
 ```
 
 To update a chapter, edit its tutorial branch README/code, fetch the new
-commit, and update `commit` in `chapters.json`. Keep `number` and `slug` stable
+commit, and update `commit` in `chapters.json` on `main`. To add a chapter,
+append an entry with the next consecutive number, its tutorial branch and
+pinned commit, a unique slug, description, recommended-reading flag, and
+aliases. Rebuild and validate the book before opening a PR targeting `main`.
+Keep `number` and `slug` stable
 so published URLs survive updates. Add an `aliases` entry when an inline file
 reference is ambiguous, mapping the text in backticks to a complete source
 path. The importer resolves exact paths, unique suffixes, and directory entry
@@ -55,9 +59,23 @@ Comparison styling lives in `theme/inspection.css` and stacks on mobile.
 ## GitHub Pages
 
 In repository Settings → Pages, select **GitHub Actions** as the build source.
-Allow `mdbook` in the `github-pages` environment's deployment branch rules.
-Push this branch to run the build and deploy workflow. Pull requests build
-and validate the book and upload a preview artifact without deploying.
-The expected project URL is https://giotyp.github.io/pie-book/.
+Allow `main` in the `github-pages` environment's deployment branch rules.
+This is a one-time repository setup; the workflow builds and uploads the HTML
+directly, so no branch containing generated HTML is needed.
+
+Pushes to `main` (including merged PRs) build and deploy the book. Pull requests
+targeting `main` build and validate the book and upload a downloadable preview
+artifact without deploying. Manual runs deploy only when `main` is selected;
+manual runs on other branches only build and upload the preview artifact.
+If Pages is enabled after the first push, rerun that workflow after setup.
+
+The upstream project URL is https://anton-mel.github.io/pie/.
+CI derives the site path and repository button from the current repository,
+so the same workflow publishes a fork at
+`https://<owner>.github.io/<repository>/` without configuration edits.
+For example, `Giotyp/pie-book` publishes at https://giotyp.github.io/pie-book/.
+The defaults in `book.toml` target upstream; chapter source links always point
+to the pinned tutorial commits in `anton-mel/pie`. The standalone inspection
+chapter retains its reference source links to `pie-project/pie`.
 
 The workflow pins mdBook 0.5.4. Update the local and CI versions together.

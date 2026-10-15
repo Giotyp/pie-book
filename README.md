@@ -5,6 +5,10 @@ million lines of code. This repo rebuilds it from scratch in about a thousand,
 one chapter per branch. Each chapter builds on the previous one, adds one
 feature, and explains in its README.
 
+Read the [online book](https://anton-mel.github.io/pie/) for chapter navigation
+and an embedded source viewer. See [CONTRIBUTING.md](CONTRIBUTING.md) to build
+the book locally or add a chapter.
+
 ## Chapters
 
 

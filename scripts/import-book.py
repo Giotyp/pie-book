@@ -11,7 +11,8 @@ from urllib.parse import quote
 
 ROOT = Path(__file__).resolve().parent.parent
 DOCS = ROOT / 'docs'
-REPO = 'https://github.com/Giotyp/pie-book'
+# Tutorial snapshots belong to upstream, including when the book is built in a fork.
+REPO = 'https://github.com/anton-mel/pie'
 
 
 def git(*args):
