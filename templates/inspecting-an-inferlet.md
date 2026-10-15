@@ -33,25 +33,28 @@ HOST CPU / inferlet guest
                                                    ▼
 DEVICE / one submitted forward
   token + position + KV geometry + mask (+ hybrid recurrent state)
-    → model forward: write current token's KV, produce logits [B, V]
-    → epilogue: log_softmax + path scores → global top-B
+    → model forward: write current token's KV, produce logits
+    → epilogue: reshape raw logits to [B, V]
+          ├─ raw-logit argmax → greedy output channel
           │
-          ├─ DEVICE FEEDBACK
-          │    next tokens + scores + ancestry mask + page geometry
-          │      → channels read by the next submitted forward
-          │
-          └─ OUTPUT CHANNELS
-               tokens + parent indices + scores + greedy argmax
+          └─ log_softmax + path scores → global top-B
+               ├─ DEVICE FEEDBACK
+               │    next tokens + scores + ancestry mask + page geometry
+               │      → channels read by the next submitted forward
+               │
+               └─ OUTPUT CHANNELS
+                    tokens + parent indices + scores
                                                    │
                                                    ▼
 HOST CPU / inferlet guest
   drain all four outputs → rebuild token paths from selected parents
     ├─ attention-only: run_ahead maintains the submission window;
-    │                  device feedback supplies the next inputs
+    │                  device feedback supplies the next inputs;
+    │                  closes submissions at budget, then drains remaining outputs
     ├─ hybrid: fork recurrent state by parent → rebind
     │           → submit next if steps remain
-    └─ after the final outputs: close pipeline → choose best lane
-                               → check width-1 identity → decode text
+    └─ after the final outputs: ensure pipeline closed → choose best lane
+                                 → check width-1 identity → decode text
 ```
 
 The attention-only path can submit later forwards before the CPU has reconstructed earlier token paths. They still depend on the preceding device-produced channel values. The hybrid path waits for parent indices before selecting the next recurrent-state bindings. The example forks and rebinds even after the final step, but submits again only if another step remains. The final selected token is returned in the path; it is not fed through another model forward just to populate its KV. These distinctions follow the epilogue and the two execution loops in `examples/beam-search/src/lib.rs`, together with the submission helpers in `crates/inferlet/src/eta.rs`.
